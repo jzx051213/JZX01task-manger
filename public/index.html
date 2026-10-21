@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能任务管理系统</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📝 智能任务管理</h1>
+      <p class="subtitle">高效规划 · 专注执行 · 轻松完成</p>
+    </header>
+
+    <!-- 添加任务表单 -->
+    <div class="add-form">
+      <input type="text" id="taskInput" placeholder="输入新任务..." maxlength="200">
+      <select id="prioritySelect">
+        <option value="高">🔴 高优先级</option>
+        <option value="中" selected>🟡 中优先级</option>
+        <option value="低">🟢 低优先级</option>
+      </select>
+      <button id="addBtn">添加任务</button>
+    </div>
+
+    <!-- 筛选栏 -->
+    <div class="filter-bar">
+      <span class="filter-label">筛选：</span>
+      <button class="filter-btn active" data-priority="all">全部</button>
+      <button class="filter-btn" data-priority="高">高</button>
+      <button class="filter-btn" data-priority="中">中</button>
+      <button class="filter-btn" data-priority="低">低</button>
+      <span class="task-count" id="taskCount"></span>
+    </div>
+
+    <!-- 任务列表 -->
+    <ul class="task-list" id="taskList"></ul>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <p>暂无任务，添加一个吧 🎉</p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
