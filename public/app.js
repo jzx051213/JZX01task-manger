@@ -1,4 +1,8 @@
-// 智能任务管理 - 前端逻辑
+// 智能任务管理 - 前端直连 Supabase
+const SUPABASE_URL = 'https://cicolrgljvsltconotff.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_04WSy2GR_L1VTuxGi5MXKQ_xkKHIQaA';
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 const taskInput = document.getElementById('taskInput');
 const prioritySelect = document.getElementById('prioritySelect');
 const addBtn = document.getElementById('addBtn');
@@ -15,12 +19,18 @@ const priorityClass = { '高': 'high', '中': 'medium', '低': 'low' };
 // 加载任务
 async function loadTasks() {
   try {
-    const url = currentFilter !== 'all'
-      ? `/api/tasks?priority=${encodeURIComponent(currentFilter)}`
-      : '/api/tasks';
-    const res = await fetch(url);
-    const tasks = await res.json();
-    renderTasks(tasks);
+    let query = supabase
+      .from('tasks')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (currentFilter !== 'all') {
+      query = query.eq('priority', currentFilter);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    renderTasks(data || []);
   } catch (err) {
     alert('加载任务失败：' + err.message);
   }
@@ -29,7 +39,7 @@ async function loadTasks() {
 // 渲染任务列表
 function renderTasks(tasks) {
   taskList.innerHTML = '';
-  if (!tasks || tasks.length === 0) {
+  if (tasks.length === 0) {
     emptyState.style.display = 'block';
     taskCount.textContent = '';
     return;
@@ -53,14 +63,17 @@ function renderTasks(tasks) {
 
     // 切换完成状态
     li.querySelector('.toggle-btn').addEventListener('click', async () => {
-      await fetch(`/api/tasks/${task.id}/toggle`, { method: 'PATCH' });
+      await supabase
+        .from('tasks')
+        .update({ completed: !task.completed })
+        .eq('id', task.id);
       loadTasks();
     });
 
     // 删除
     li.querySelector('.delete-btn').addEventListener('click', async () => {
       if (confirm('确定删除这条任务吗？')) {
-        await fetch(`/api/tasks/${task.id}`, { method: 'DELETE' });
+        await supabase.from('tasks').delete().eq('id', task.id);
         loadTasks();
       }
     });
@@ -77,11 +90,7 @@ async function addTask() {
     taskInput.focus();
     return;
   }
-  await fetch('/api/tasks', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, priority }),
-  });
+  await supabase.from('tasks').insert([{ title, priority, completed: false }]);
   taskInput.value = '';
   taskInput.focus();
   loadTasks();
@@ -96,6 +105,7 @@ taskInput.addEventListener('keydown', (e) => {
 filterBtns.forEach((btn) => {
   btn.addEventListener('click', () => {
     filterBtns.forEach((b) => b.classList.remove('active'));
+    btn.classList.remove('active');
     btn.classList.add('active');
     currentFilter = btn.dataset.priority;
     loadTasks();
