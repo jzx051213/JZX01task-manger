@@ -28,7 +28,7 @@ const supabase = SUPABASE_URL && SUPABASE_ANON_KEY
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(process.cwd(), 'public')));
 
 // ============ API 路由 ============
 
@@ -125,6 +125,12 @@ app.delete('/api/tasks/:id', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`✅ 服务器运行在 http://localhost:${PORT}`);
-});
+// 仅在本地运行时启动监听；Vercel 部署时导出 app
+const isLocal = process.env.NODE_ENV !== 'production' && !process.env.VERCEL;
+if (isLocal) {
+  app.listen(PORT, () => {
+    console.log(`✅ 服务器运行在 http://localhost:${PORT}`);
+  });
+}
+
+export default app;
